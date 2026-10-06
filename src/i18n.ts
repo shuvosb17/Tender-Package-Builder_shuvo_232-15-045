@@ -46,6 +46,8 @@ const en = {
   appTagline: 'Check every document and build one submission-ready PDF.',
   privacyNote: 'Everything stays on this computer. Files are never uploaded.',
   langLabel: 'Language',
+  nightMode: 'Night mode',
+  dayMode: 'Day mode',
   // Welcome
   welcomeTitle: 'Prepare your tender package',
   welcomeBody:
@@ -234,6 +236,8 @@ const bn: Dict = {
   appTagline: 'প্রতিটি কাগজ যাচাই করে জমা দেওয়ার উপযোগী একটি PDF তৈরি করুন।',
   privacyNote: 'সবকিছু এই কম্পিউটারেই থাকে। কোনো ফাইল আপলোড হয় না।',
   langLabel: 'ভাষা',
+  nightMode: 'রাতের মোড',
+  dayMode: 'দিনের মোড',
   welcomeTitle: 'আপনার টেন্ডার প্যাকেজ প্রস্তুত করুন',
   welcomeBody:
     'টেন্ডারের সাথে পাওয়া requirements.json ফাইলটি দিয়ে শুরু করুন। এতে কোন কোন কাগজ লাগবে এবং কোন ক্রমে লাগবে তা লেখা থাকে।',

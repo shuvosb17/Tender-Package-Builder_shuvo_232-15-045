@@ -1,16 +1,18 @@
 import type { Lang } from '../i18n';
 import { digits } from '../i18n';
 import { useI18n } from '../i18nContext';
-import { IconCheck, IconLock } from './Icons';
+import { IconCheck, IconLock, IconMoon, IconSun } from './Icons';
 
 interface Props {
   done: boolean[];
   enabled: boolean[];
   onStep: (index: number) => void;
   onLangChange: (lang: Lang) => void;
+  dark: boolean;
+  onDarkChange: (dark: boolean) => void;
 }
 
-export function Sidebar({ done, enabled, onStep, onLangChange }: Props) {
+export function Sidebar({ done, enabled, onStep, onLangChange, dark, onDarkChange }: Props) {
   const { t, lang } = useI18n();
   const current = done.findIndex((d) => !d);
   return (
@@ -48,6 +50,16 @@ export function Sidebar({ done, enabled, onStep, onLangChange }: Props) {
       </nav>
 
       <div className="sidebar__foot">
+        <button
+          type="button"
+          className="theme-toggle"
+          aria-pressed={dark}
+          title={dark ? t.dayMode : t.nightMode}
+          onClick={() => onDarkChange(!dark)}
+        >
+          {dark ? <IconSun size={18} /> : <IconMoon size={18} />}
+          <span className="theme-toggle__label">{t.nightMode}</span>
+        </button>
         <div className="lang-toggle" role="group" aria-label={t.langLabel}>
           <button type="button" lang="en" aria-pressed={lang === 'en'} onClick={() => onLangChange('en')}>
             English

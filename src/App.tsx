@@ -67,6 +67,16 @@ export default function App() {
     document.documentElement.lang = lang;
   }, [lang]);
 
+  const [dark, setDark] = useState(() => document.documentElement.dataset.theme === 'dark');
+  useEffect(() => {
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+    try {
+      localStorage.setItem('tpb.theme', dark ? 'dark' : 'light');
+    } catch {
+      /* storage unavailable */
+    }
+  }, [dark]);
+
   const tender = state.data?.tender;
   useEffect(() => {
     document.title = tender ? `${tender.tender_id} · ${t.appName}` : t.appName;
@@ -420,7 +430,7 @@ export default function App() {
             {t.skipToChecklist}
           </a>
         )}
-        <Sidebar done={stepsDone} enabled={stepsEnabled} onStep={goToStep} onLangChange={setLang} />
+        <Sidebar done={stepsDone} enabled={stepsEnabled} onStep={goToStep} onLangChange={setLang} dark={dark} onDarkChange={setDark} />
         <input
           ref={jsonInput}
           type="file"

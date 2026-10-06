@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Build a checked, correctly ordered tender submission PDF in your browser. Nothing is uploaded." />
     <title>Tender Package Builder</title>
+    <script>
+      try {
+        var saved = localStorage.getItem('tpb.theme');
+        var dark = saved ? saved === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>
