@@ -2,7 +2,7 @@
 
 A frontend-only web app that turns a tender's `requirements.json` and a set of PDF files into one checked, correctly ordered submission PDF named `<tender_id>_Package.pdf`. Everything runs in the browser: no backend, no uploads, no analytics.
 
-- **Live site:** _see the submission portal / repository description_
+- **Live site:** https://tender-package-builder-omega.vercel.app
 - **Final package from the sample pack:** [`output/T-2026-0417_Package.pdf`](output/T-2026-0417_Package.pdf)
 - **Screenshots:** [`screenshots/`](screenshots/)
 
@@ -78,6 +78,12 @@ Expiry dates were entered only as printed on each document. No dates were invent
 - **Protected PDFs are rejected**, even when they open without a password, because pdf-lib cannot copy encrypted content streams and the output would be blank.
 - **All strings** live in one typed dictionary (`src/i18n.ts`). Bangla mode also uses Bangla numerals and dates.
 - **Accessibility:** labelled inputs, keyboard-only matching (native selects), visible focus rings, `aria-live` regions for toasts and status changes, 44px controls, colour + icon + text for every status.
+
+## Verification
+
+- 29 unit tests pass (`npm test`): status rules including same-day expiry, duplicate grouping, reducer rules, requirements parsing, footer text, page order, page sizes and rotation in the built PDF.
+- The full flow was run end to end in headless Chrome against the deployed site (`node scripts/cdp.mjs scripts/scenarios/full.mjs https://tender-package-builder-omega.vercel.app/`): non-PDFs rejected, protected and damaged files disabled, duplicate blocked for a second document, expired document blocks generation, blocker click scrolls to the row, changing a file clears its date, removing a matched file returns the row to Missing, language switch keeps all work and is remembered, package and CSV download.
+- The generated PDF was rendered page by page to check the cover, index, footers and rotated/landscape pages ([`screenshots/08-package-pages.png`](screenshots/08-package-pages.png)).
 
 ## Bonus features
 

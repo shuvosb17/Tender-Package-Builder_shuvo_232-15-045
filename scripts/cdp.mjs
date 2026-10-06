@@ -66,7 +66,13 @@ const page = {
   },
   async goto(url) {
     await send('Page.navigate', { url });
-    await sleep(1200);
+    await sleep(800);
+    for (let i = 0; i < 40; i++) {
+      const res = await send('Runtime.evaluate', { expression: `document.readyState === 'complete' && !!document.getElementById('root')?.childElementCount`, returnByValue: true });
+      if (res.result.value) break;
+      await sleep(250);
+    }
+    await sleep(400);
   },
   async eval(expression) {
     const res = await send('Runtime.evaluate', { expression, awaitPromise: true, returnByValue: true });
