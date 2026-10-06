@@ -51,14 +51,14 @@ export async function inspectPdf(bytes: ArrayBuffer): Promise<Inspection> {
     libPages = doc.getPageCount();
     if (libPages === 0) return { problem: 'corrupt' };
   } catch (err) {
-    return { problem: err instanceof EncryptedPDFError ? 'encrypted' : 'corrupt' };
+    return { problem: err instanceof EncryptedPDFError || hasEncryptDict(bytes) ? 'encrypted' : 'corrupt' };
   }
 
   let thumbnail: string | undefined;
   let pageCount = libPages;
   try {
     const pdfjs = await loadPdfJs();
-    const task = pdfjs.getDocument({ data: new Uint8Array(bytes.slice(0)), isEvalSupported: false });
+    const task = pdfjs.getDocument({ data: new Uint8Array(bytes.slice(0)) });
     const doc = await task.promise;
     pageCount = doc.numPages;
     thumbnail = await renderThumbnail(doc).catch(() => undefined);
@@ -69,6 +69,13 @@ export async function inspectPdf(bytes: ArrayBuffer): Promise<Inspection> {
     return { problem: 'corrupt' };
   }
   return { pageCount, thumbnail };
+}
+
+/** Fallback for protected files whose structure pdf-lib cannot even parse. */
+function hasEncryptDict(bytes: ArrayBuffer): boolean {
+  const view = new Uint8Array(bytes);
+  const tail = view.subarray(Math.max(0, view.length - 64 * 1024));
+  return /\/Encrypt\s/.test(new TextDecoder('latin1').decode(tail));
 }
 
 async function renderThumbnail(doc: import('pdfjs-dist').PDFDocumentProxy): Promise<string> {

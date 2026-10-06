@@ -22,7 +22,7 @@ export function formatDate(iso: string, lang: Lang): string {
 
 export function formatBytes(bytes: number, lang: Lang): string {
   const mb = bytes / (1024 * 1024);
-  const text = mb >= 1 ? `${mb.toFixed(1)} MB` : `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  const text = mb >= 1 ? `${mb.toFixed(1)} MB` : bytes === 0 ? '0 KB' : `${Math.max(1, Math.round(bytes / 1024))} KB`;
   return digits(text, lang);
 }
 
@@ -80,9 +80,11 @@ const en = {
   notMatched: 'Not used yet',
   duplicateBadge: 'Duplicate',
   sameContentAs: (names: string) => `Same content as ${names}`,
-  problemEncrypted: 'Password-protected. This file cannot be added to the package. Please use an unprotected copy.',
-  problemCorrupt: 'This file is damaged and cannot be opened. Please get a new copy.',
   problemShort: { encrypted: 'Password-protected', corrupt: 'Damaged file' } as Record<FileProblem, string>,
+  problemHelp: {
+    encrypted: 'It cannot be added to the package. Please use a copy without a password.',
+    corrupt: 'It cannot be opened. Please get a new copy of this document.',
+  } as Record<FileProblem, string>,
   suggestionsAvailable: (n: number) => `${n} suggested match${n === 1 ? '' : 'es'} found from file names`,
   acceptAll: 'Accept all',
   // Checklist
@@ -118,6 +120,8 @@ const en = {
   blockerExpiry: (n: number, title: string) => `#${n} ${title}: enter the expiry date`,
   blockerExpired: (n: number, title: string, date: string) => `#${n} ${title}: expired on ${date}`,
   blockersTitle: (n: number) => `${n} thing${n === 1 ? '' : 's'} to fix before you can generate`,
+  showAll: (n: number) => `Show all ${n}`,
+  showLess: 'Show less',
   allSet: 'All set. Your package is ready to generate.',
   // Generate
   generate: 'Generate package',
@@ -129,13 +133,20 @@ const en = {
   generateFailed: (names: string) => `Could not read ${names}. Remove the file or replace it with a working copy.`,
   generateFailedGeneric: 'Something went wrong while building the PDF. Please try again.',
   // Toasts
-  rejectedNotPdf: (name: string) => `"${name}" is not a PDF file, so it was not added.`,
+  rejectedNotPdf: (names: string[]) =>
+    names.length === 1
+      ? `"${names[0]}" is not a PDF file, so it was not added.`
+      : `${names.length} files are not PDFs and were not added: ${names.join(', ')}`,
   rejectedTooMany: (n: number) => `Only 30 files are allowed. ${n} file${n === 1 ? ' was' : 's were'} not added.`,
   rejectedTooLarge: (name: string) => `"${name}" was not added: all files together must stay under 50 MB.`,
   rejectedEmpty: (name: string) => `"${name}" is empty and was not added.`,
   alreadyAdded: (name: string) => `"${name}" is already in your list.`,
-  fileProblemToast: (name: string, problem: FileProblem) =>
-    problem === 'encrypted' ? `"${name}" is password-protected and cannot be used.` : `"${name}" is damaged and cannot be opened.`,
+  fileProblemToast: (items: { name: string; problem: FileProblem }[]) =>
+    items
+      .map(({ name, problem }) =>
+        problem === 'encrypted' ? `"${name}" is password-protected and cannot be used.` : `"${name}" is damaged and cannot be opened.`,
+      )
+      .join(' '),
   requirementsLoaded: (n: number) => `Tender loaded with ${n} required documents.`,
   matchCleared: (title: string) => `Match removed from ${title}.`,
   dismiss: 'Dismiss',
@@ -206,9 +217,11 @@ const bn: Dict = {
   notMatched: 'এখনো ব্যবহার হয়নি',
   duplicateBadge: 'একই ফাইল',
   sameContentAs: (names) => `${names}-এর সাথে হুবহু এক`,
-  problemEncrypted: 'পাসওয়ার্ড দিয়ে সুরক্ষিত। এই ফাইল প্যাকেজে যোগ করা যাবে না। সুরক্ষাহীন একটি কপি ব্যবহার করুন।',
-  problemCorrupt: 'ফাইলটি নষ্ট, খোলা যাচ্ছে না। অনুগ্রহ করে নতুন একটি কপি নিন।',
   problemShort: { encrypted: 'পাসওয়ার্ড-সুরক্ষিত', corrupt: 'নষ্ট ফাইল' },
+  problemHelp: {
+    encrypted: 'এটি প্যাকেজে যোগ করা যাবে না। পাসওয়ার্ড ছাড়া একটি কপি ব্যবহার করুন।',
+    corrupt: 'এটি খোলা যাচ্ছে না। এই কাগজের নতুন একটি কপি নিন।',
+  },
   suggestionsAvailable: (n) => `ফাইলের নাম দেখে ${digits(n, 'bn')}টি সম্ভাব্য মিল পাওয়া গেছে`,
   acceptAll: 'সবগুলো গ্রহণ করুন',
   requiredDocuments: 'প্রয়োজনীয় কাগজপত্র',
@@ -241,6 +254,8 @@ const bn: Dict = {
   blockerExpiry: (n, title) => `#${digits(n, 'bn')} ${title}: মেয়াদের তারিখ দিন`,
   blockerExpired: (n, title, date) => `#${digits(n, 'bn')} ${title}: মেয়াদ শেষ ${date}`,
   blockersTitle: (n) => `তৈরি করার আগে ${digits(n, 'bn')}টি বিষয় ঠিক করতে হবে`,
+  showAll: (n) => `সবগুলো দেখুন (${digits(n, 'bn')})`,
+  showLess: 'কম দেখুন',
   allSet: 'সব ঠিক আছে। আপনার প্যাকেজ তৈরি করা যাবে।',
   generate: 'প্যাকেজ তৈরি করুন',
   generating: (done, total) => `তৈরি হচ্ছে… ${digits(total, 'bn')} পৃষ্ঠার ${digits(done, 'bn')}টি`,
@@ -250,13 +265,20 @@ const bn: Dict = {
   downloadAgain: 'আবার ডাউনলোড',
   generateFailed: (names) => `${names} পড়া যাচ্ছে না। ফাইলটি সরিয়ে দিন বা ভালো একটি কপি দিন।`,
   generateFailedGeneric: 'PDF তৈরির সময় সমস্যা হয়েছে। আবার চেষ্টা করুন।',
-  rejectedNotPdf: (name) => `"${name}" PDF ফাইল নয়, তাই যোগ করা হয়নি।`,
+  rejectedNotPdf: (names) =>
+    names.length === 1
+      ? `"${names[0]}" PDF ফাইল নয়, তাই যোগ করা হয়নি।`
+      : `${digits(names.length, 'bn')}টি ফাইল PDF নয়, যোগ করা হয়নি: ${names.join(', ')}`,
   rejectedTooMany: (n) => `সর্বোচ্চ ৩০টি ফাইল দেওয়া যায়। ${digits(n, 'bn')}টি ফাইল যোগ করা হয়নি।`,
   rejectedTooLarge: (name) => `"${name}" যোগ করা হয়নি: সব ফাইল মিলিয়ে ৫০ MB-এর কম হতে হবে।`,
   rejectedEmpty: (name) => `"${name}" ফাঁকা ফাইল, তাই যোগ করা হয়নি।`,
   alreadyAdded: (name) => `"${name}" আগেই তালিকায় আছে।`,
-  fileProblemToast: (name, problem) =>
-    problem === 'encrypted' ? `"${name}" পাসওয়ার্ড-সুরক্ষিত, ব্যবহার করা যাবে না।` : `"${name}" নষ্ট, খোলা যাচ্ছে না।`,
+  fileProblemToast: (items) =>
+    items
+      .map(({ name, problem }) =>
+        problem === 'encrypted' ? `"${name}" পাসওয়ার্ড-সুরক্ষিত, ব্যবহার করা যাবে না।` : `"${name}" নষ্ট, খোলা যাচ্ছে না।`,
+      )
+      .join(' '),
   requirementsLoaded: (n) => `টেন্ডার লোড হয়েছে, ${digits(n, 'bn')}টি কাগজ প্রয়োজন।`,
   matchCleared: (title) => `${title} থেকে মিল সরানো হয়েছে।`,
   dismiss: 'বন্ধ করুন',

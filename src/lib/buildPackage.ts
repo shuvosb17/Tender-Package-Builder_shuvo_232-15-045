@@ -1,4 +1,4 @@
-import { PDFDocument, PDFFont, PDFPage, StandardFonts, degrees, rgb } from 'pdf-lib';
+import { PDFDocument, PDFFont, PDFImage, PDFPage, StandardFonts, degrees, rgb } from 'pdf-lib';
 import type { Requirement, Tender } from './types';
 
 export const FOOTER_MARGIN = 36;
@@ -22,10 +22,22 @@ export interface BuildOptions {
   items: PackageItem[];
   generatedOn: string;
   includeIndex: boolean;
-  /** Optional Noto Sans Bengali (TTF/WOFF) bytes, used for Bangla titles on the index page. */
-  bengaliFont?: Uint8Array | ArrayBuffer;
-  fontkit?: unknown;
-  onProgress?: (done: number, total: number) => void;
+  /**
+   * Bangla titles for the index page, pre-rendered by the browser (which shapes Bengali
+   * conjuncts correctly, unlike pdf-lib's text layout). Keyed by requirement id.
+   */
+  bengaliLabels?: Record<string, LabelImage>;
+  onProgress?: (done: number, total: number) => void | Promise<void>;
+}
+
+export interface LabelImage {
+  png: Uint8Array;
+  /** Size in points when the text is drawn at `fontSize`. */
+  width: number;
+  height: number;
+  fontSize: number;
+  /** Distance from the image bottom to the text baseline, in points at `fontSize`. */
+  baseline: number;
 }
 
 export interface BuildResult {
@@ -74,13 +86,16 @@ export async function buildPackage(opts: BuildOptions): Promise<BuildResult> {
 
   const regular = await out.embedFont(StandardFonts.Helvetica);
   const bold = await out.embedFont(StandardFonts.HelveticaBold);
-  let bengali: PDFFont | undefined;
-  if (opts.bengaliFont && opts.fontkit) {
-    try {
-      out.registerFontkit(opts.fontkit as Parameters<PDFDocument['registerFontkit']>[0]);
-      bengali = await out.embedFont(opts.bengaliFont, { subset: false });
-    } catch {
-      bengali = undefined;
+  const labels = new Map<string, { image: PDFImage; meta: LabelImage }>();
+  if (opts.includeIndex && opts.bengaliLabels) {
+    for (const item of items) {
+      const meta = opts.bengaliLabels[item.req.id];
+      if (!meta) continue;
+      try {
+        labels.set(item.req.id, { image: await out.embedPng(meta.png), meta });
+      } catch {
+        /* the English title is still shown */
+      }
     }
   }
 
@@ -94,16 +109,16 @@ export async function buildPackage(opts: BuildOptions): Promise<BuildResult> {
     cursor += counts[i];
   });
 
-  const fonts = { regular, bold, bengali };
+  const fonts = { regular, bold };
   drawCover(out.addPage(A4), opts, items, counts, fonts);
-  if (opts.includeIndex) drawIndex(out.addPage(A4), items, starts, fonts);
+  if (opts.includeIndex) drawIndex(out.addPage(A4), items, starts, fonts, labels);
 
   const totalSourcePages = counts.reduce((a, b) => a + b, 0);
   let done = 0;
   for (const src of sources) {
     for (const page of src.getPages()) {
       await appendWithMargin(out, page);
-      opts.onProgress?.(++done, totalSourcePages);
+      await opts.onProgress?.(++done, totalSourcePages);
     }
   }
 
@@ -163,7 +178,6 @@ function drawFooter(page: PDFPage, font: PDFFont, text: string) {
 interface Fonts {
   regular: PDFFont;
   bold: PDFFont;
-  bengali?: PDFFont;
 }
 
 function drawCover(page: PDFPage, opts: BuildOptions, items: PackageItem[], counts: number[], f: Fonts) {
@@ -227,7 +241,13 @@ function drawCover(page: PDFPage, opts: BuildOptions, items: PackageItem[], coun
   });
 }
 
-function drawIndex(page: PDFPage, items: PackageItem[], starts: BuildResult['starts'], f: Fonts) {
+function drawIndex(
+  page: PDFPage,
+  items: PackageItem[],
+  starts: BuildResult['starts'],
+  f: Fonts,
+  labels: Map<string, { image: PDFImage; meta: LabelImage }>,
+) {
   const [W, H] = A4;
   const L = 56;
   const R = W - 56;
@@ -249,7 +269,7 @@ function drawIndex(page: PDFPage, items: PackageItem[], starts: BuildResult['sta
   y -= 10;
   hr(page, L, R, y);
 
-  const withBn = Boolean(f.bengali);
+  const withBn = labels.size > 0;
   const available = y - (FOOTER_MARGIN + 40);
   const rowH = Math.max(14, Math.min(withBn ? 36 : 24, available / Math.max(1, items.length)));
   const size = Math.min(11, rowH * (withBn ? 0.32 : 0.46));
@@ -261,12 +281,12 @@ function drawIndex(page: PDFPage, items: PackageItem[], starts: BuildResult['sta
     text(page, String(i + 1), L, base, f.regular, size, MUTED);
     const titleW = colPages - 60 - (L + 36);
     text(page, truncate(item.req.title_en, f.regular, size, titleW), L + 36, base, f.regular, size, INK);
-    if (f.bengali && item.req.title_bn && item.req.title_bn !== item.req.title_en) {
-      try {
-        page.drawText(item.req.title_bn, { x: L + 36, y: top - rowH * 0.82, size: size * 0.95, font: f.bengali, color: MUTED });
-      } catch {
-        /* glyph not available: English title is already shown */
-      }
+    const label = labels.get(item.req.id);
+    if (label) {
+      const { meta, image } = label;
+      const k = Math.min((size * 0.95) / meta.fontSize, titleW / meta.width);
+      const baselineY = top - rowH * 0.84;
+      page.drawImage(image, { x: L + 36, y: baselineY - meta.baseline * k, width: meta.width * k, height: meta.height * k });
     }
     const s = starts[i];
     const pages = String(s.pages);

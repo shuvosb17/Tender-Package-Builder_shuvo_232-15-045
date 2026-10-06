@@ -33,7 +33,7 @@ async function makePdf(pages: { size: [number, number]; label: string; rotate?: 
 }
 
 async function readText(bytes: Uint8Array) {
-  const doc = await getDocument({ data: bytes.slice(), isEvalSupported: false }).promise;
+  const doc = await getDocument({ data: bytes.slice() }).promise;
   const pages: { width: number; height: number; items: { str: string; x: number; y: number }[] }[] = [];
   for (let i = 1; i <= doc.numPages; i++) {
     const page = await doc.getPage(i);
