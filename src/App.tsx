@@ -243,9 +243,9 @@ export default function App() {
   const [tab, setTab] = useState<Tab>('checklist');
   const [previewId, setPreviewId] = useState<string>();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [wide, setWide] = useState(() => window.matchMedia('(min-width: 1500px)').matches);
+  const [wide, setWide] = useState(() => window.matchMedia('(min-width: 1700px)').matches);
   useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1500px)');
+    const mq = window.matchMedia('(min-width: 1700px)');
     const on = () => setWide(mq.matches);
     mq.addEventListener('change', on);
     return () => mq.removeEventListener('change', on);

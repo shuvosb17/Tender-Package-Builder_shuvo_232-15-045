@@ -55,10 +55,17 @@ export function GenerateBar(p: Props) {
       <div className={`issues-box ${blocked ? 'issues-box--blocked' : 'issues-box--ok'}`} role="status">
         {blocked ? (
           <>
-            <p className="issues-box__title">
-              <IconAlert size={17} />
-              {t.issuesTitle}
-            </p>
+            <div className="issues-box__head">
+              <p className="issues-box__title">
+                <IconAlert size={17} />
+                {t.issuesTitle}
+              </p>
+              {p.blockers.length > 1 && (
+                <button type="button" className="link-btn issues-box__more" onClick={p.onShowAllIssues}>
+                  {t.showAll(p.blockers.length)}
+                </button>
+              )}
+            </div>
             <ul className="issues-box__list">
               {p.blockers.slice(0, VISIBLE).map((b) => (
                 <li key={b.reqId}>
@@ -68,13 +75,6 @@ export function GenerateBar(p: Props) {
                 </li>
               ))}
             </ul>
-            <button
-              type="button"
-              className={`link-btn issues-box__more ${p.blockers.length > VISIBLE ? '' : 'issues-box__more--narrow'}`}
-              onClick={p.onShowAllIssues}
-            >
-              {t.showAll(p.blockers.length)}
-            </button>
           </>
         ) : (
           <p className="issues-box__title">

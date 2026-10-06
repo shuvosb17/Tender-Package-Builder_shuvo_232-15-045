@@ -27,12 +27,12 @@ export function TenderHeader({ tender, counts, onChangeTender }: { tender: Tende
         <div className="tender-card__body">
           <div className="tender-card__top">
             <span className="eyebrow">{t.tenderId}</span>
+            <span className="tender-card__id">{tender.tender_id}</span>
             <button type="button" className="link-btn" onClick={onChangeTender}>
               {t.changeRequirements}
             </button>
           </div>
-          <p className="tender-card__id">{tender.tender_id}</p>
-          <h1 className="tender-card__title">{tender.title}</h1>
+          <h1 className="tender-card__title" title={tender.title}>{tender.title}</h1>
           <dl className="tender-facts">
             <div className="fact">
               <IconBuilding size={18} />
@@ -53,10 +53,10 @@ export function TenderHeader({ tender, counts, onChangeTender }: { tender: Tende
               <div>
                 <dt>{t.deadline}</dt>
                 <dd>
-                  <time dateTime={tender.submission_deadline}>{digits(tender.submission_deadline, lang)}</time>
-                  <span className="fact__sub">
-                    {formatDate(tender.submission_deadline, lang)} · {t.daysLeft(days)}
-                  </span>
+                  <time dateTime={tender.submission_deadline} title={formatDate(tender.submission_deadline, lang)}>
+                    {digits(tender.submission_deadline, lang)}
+                  </time>
+                  <span className="fact__sub">{t.daysLeft(days)}</span>
                 </dd>
               </div>
             </div>

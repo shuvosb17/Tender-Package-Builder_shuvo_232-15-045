@@ -256,6 +256,7 @@ select {
   position: sticky;
   top: 0;
   height: 100vh;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 28px;
@@ -284,6 +285,7 @@ select {
   gap: 4px;
 }
 .nav-step {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -391,6 +393,7 @@ select {
   gap: 16px;
   min-width: 0;
   height: 100vh;
+  overflow-y: auto;
   padding: 18px 22px;
 }
 
@@ -403,16 +406,16 @@ select {
 }
 .tender-card {
   display: flex;
-  gap: 18px;
-  padding: 18px 22px;
+  gap: 16px;
+  padding: 16px 20px;
   background: linear-gradient(120deg, #ffffff 55%, var(--accent-softer));
 }
 .tender-card__icon {
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  width: 60px;
-  height: 60px;
+  width: 48px;
+  height: 48px;
   border-radius: 12px;
   background: var(--accent-soft);
   color: var(--accent);
@@ -423,10 +426,12 @@ select {
 }
 .tender-card__top {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 12px;
+  gap: 2px 10px;
 }
 .tender-card__top .link-btn {
+  margin-left: 4px;
   font-size: 12.5px;
 }
 .tender-card__id {
@@ -436,17 +441,22 @@ select {
   color: var(--accent);
 }
 .tender-card__title {
-  font-size: 21px;
+  font-size: 19px;
   font-weight: 700;
   letter-spacing: -0.015em;
   line-height: 1.3;
-  margin-top: 2px;
+  margin-top: 1px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 .tender-facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 32px;
-  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, max-content));
+  justify-content: start;
+  gap: 8px 32px;
+  margin-top: 10px;
 }
 .fact {
   display: flex;
@@ -462,26 +472,36 @@ select {
   font-size: 12px;
   color: var(--muted);
 }
+.fact > div {
+  min-width: 0;
+}
+.fact dt {
+  white-space: nowrap;
+}
 .fact dd {
   font-weight: 600;
   font-size: 14px;
   color: var(--text);
+  overflow-wrap: anywhere;
 }
 .fact--deadline dd {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 8px;
 }
 .fact--deadline time {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
-  line-height: 1.3;
+  white-space: nowrap;
 }
 .fact__sub {
   font-size: 12px;
   font-weight: 500;
   color: var(--muted);
+  white-space: nowrap;
 }
 .fact--soon time,
 .fact--soon svg {
@@ -493,7 +513,7 @@ select {
 }
 
 .progress-card {
-  padding: 16px 20px;
+  padding: 14px 18px;
 }
 .progress-card__title {
   font-size: 14px;
@@ -502,28 +522,28 @@ select {
 .progress-card__body {
   display: flex;
   align-items: center;
-  gap: 18px;
-  margin-top: 10px;
+  gap: 16px;
+  margin-top: 8px;
 }
 .ring {
   --pct: 0;
   position: relative;
   flex-shrink: 0;
-  width: 84px;
-  height: 84px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   background: conic-gradient(var(--accent) calc(var(--pct) * 1%), #e3e9e5 0);
   transition: background 0.3s;
 }
 .ring span {
   position: absolute;
-  inset: 9px;
+  inset: 8px;
   display: grid;
   place-items: center;
   border-radius: 50%;
   background: var(--surface);
   font-weight: 700;
-  font-size: 18px;
+  font-size: 16px;
   font-variant-numeric: tabular-nums;
 }
 .legend {
@@ -531,9 +551,14 @@ select {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 4px;
+  gap: 2px;
+  min-width: 0;
   font-size: 13px;
+  line-height: 1.4;
   color: var(--text-2);
+}
+.legend li {
+  white-space: nowrap;
 }
 .legend li {
   display: flex;
@@ -562,8 +587,8 @@ select {
 
 /* ---------- Workspace ---------- */
 .workspace {
-  flex: 1;
-  min-height: 0;
+  flex: 1 1 0;
+  min-height: 400px;
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
   gap: 16px;
@@ -582,7 +607,7 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: 8px 10px;
-  padding: 14px 16px 12px;
+  padding: 12px 14px 12px 16px;
   border-bottom: 1px solid var(--border-soft);
 }
 .col__head h2 {
@@ -590,11 +615,14 @@ select {
   font-weight: 650;
   white-space: nowrap;
 }
+.col__head .btn--small {
+  padding: 0 12px;
+}
 .col__count {
   color: var(--muted);
   font-weight: 500;
   font-size: 13px;
-  margin-left: 4px;
+  margin-left: 2px;
   font-variant-numeric: tabular-nums;
 }
 .col__scroll {
@@ -922,7 +950,7 @@ select {
 .req-head,
 .req {
   display: grid;
-  grid-template-columns: 22px minmax(130px, 1.2fr) minmax(170px, 1.25fr) 148px 136px;
+  grid-template-columns: 22px minmax(130px, 1.1fr) minmax(180px, 1.4fr) 140px 122px;
   grid-template-areas: 'num doc file expiry status';
   column-gap: 12px;
 }
@@ -1139,7 +1167,7 @@ select {
 }
 .suggestion__name {
   flex: 1;
-  min-width: 0;
+  min-width: 96px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1197,7 +1225,7 @@ select {
     display: none;
   }
   .req {
-    grid-template-columns: 26px minmax(0, 1fr) minmax(150px, auto);
+    grid-template-columns: 26px minmax(0, 1fr) minmax(160px, 210px);
     grid-template-areas:
       'num doc status'
       'num file expiry';
@@ -1463,9 +1491,13 @@ select {
 
 /* ---------- Generate bar ---------- */
 .genbar {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
   flex-shrink: 0;
+  box-shadow: 0 -2px 14px rgba(20, 30, 27, 0.07);
   display: grid;
-  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr) auto;
   gap: 20px;
   align-items: center;
   padding: 14px 18px;
@@ -1492,8 +1524,11 @@ select {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 2px 14px;
+  gap: 0 14px;
   margin-top: 6px;
+}
+.genbar__opts > * {
+  white-space: nowrap;
 }
 .check {
   display: inline-flex;
@@ -1526,6 +1561,13 @@ select {
   border-color: var(--green-border);
   color: var(--green);
 }
+.issues-box__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px 12px;
+}
 .issues-box__title {
   display: flex;
   align-items: center;
@@ -1543,14 +1585,23 @@ select {
   gap: 1px;
   font-size: 13px;
 }
+.issues-box__list li {
+  min-width: 0;
+}
 .issues-box__list li::marker {
   color: var(--red);
 }
 .issues-box__link {
+  display: inline-block;
+  vertical-align: top;
+  max-width: 100%;
   padding: 1px 0;
   border: 0;
   background: none;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   text-align: left;
   cursor: pointer;
   text-decoration: underline;
@@ -1562,11 +1613,8 @@ select {
   text-decoration-color: currentColor;
 }
 .issues-box__more {
-  margin: 2px 0 0 24px;
   font-size: 12.5px;
-}
-.issues-box__more--narrow {
-  display: none;
+  white-space: nowrap;
 }
 .genbar__go-wrap {
   display: flex;
@@ -1710,8 +1758,8 @@ select {
 /* ---------- Toasts ---------- */
 .toasts {
   position: fixed;
-  bottom: 132px;
-  right: 24px;
+  top: 16px;
+  right: 20px;
   z-index: 50;
   display: flex;
   flex-direction: column;
@@ -1793,9 +1841,9 @@ select {
 }
 
 /* ---------- Responsive ---------- */
-@media (min-width: 1500px) {
+@media (min-width: 1700px) {
   .workspace {
-    grid-template-columns: 260px minmax(0, 1fr) 300px;
+    grid-template-columns: 284px minmax(0, 1fr) 300px;
   }
   .req-head,
   .req {
@@ -1840,15 +1888,42 @@ select {
     margin-top: 6px;
   }
   .ring--lg {
-    width: 70px;
-    height: 70px;
+    width: 64px;
+    height: 64px;
   }
   .ring--lg span {
-    inset: 8px;
+    inset: 7px;
     font-size: 15px;
   }
   .genbar {
     padding: 10px 16px;
+    gap: 16px;
+  }
+  .genbar__count {
+    font-size: 14px;
+  }
+  .bar {
+    height: 6px;
+    margin-top: 6px;
+  }
+  .genbar__opts {
+    margin-top: 2px;
+  }
+  .check,
+  .link-btn--icon {
+    min-height: 32px;
+  }
+  .issues-box {
+    padding: 8px 12px;
+  }
+  .issues-box__list li:nth-child(n + 2) {
+    display: none;
+  }
+  .genbar__hint:not(.genbar__hint--link) {
+    display: none;
+  }
+  .btn--lg.genbar__go {
+    min-height: 46px;
   }
   .hint {
     padding: 8px 10px;
@@ -1861,17 +1936,30 @@ select {
     grid-template-columns: 210px minmax(0, 1fr);
   }
   .workspace {
-    grid-template-columns: 270px minmax(0, 1fr);
+    grid-template-columns: 284px minmax(0, 1fr);
   }
   .head-row {
-    grid-template-columns: minmax(0, 1fr) 260px;
+    grid-template-columns: minmax(0, 1fr) 244px;
   }
   .genbar {
-    grid-template-columns: minmax(200px, 260px) minmax(0, 1fr) auto;
+    grid-template-columns: 340px minmax(0, 1fr) auto;
+  }
+  .genbar__go {
+    min-width: 200px;
   }
 }
 
-@media (max-width: 1100px), (max-height: 680px) {
+@media (max-height: 700px) {
+  .sidebar {
+    gap: 18px;
+    padding-top: 16px;
+  }
+  .nav-step {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 1100px) {
   .app {
     grid-template-columns: 1fr;
   }
@@ -1912,9 +2000,11 @@ select {
   }
   .main {
     height: auto;
+    overflow: visible;
   }
   .workspace {
     flex: none;
+    min-height: 0;
   }
   .col {
     overflow: visible;
@@ -1926,25 +2016,50 @@ select {
     overflow: visible;
   }
   .genbar {
-    position: sticky;
     bottom: 12px;
-    z-index: 20;
-    box-shadow: 0 -4px 24px rgba(20, 30, 27, 0.1);
+    grid-template-columns: 320px minmax(0, 1fr) auto;
+    gap: 14px;
   }
-  .issues-box__list {
+  .genbar__go {
+    min-width: 0;
+  }
+  .issues-box__list li:nth-child(n + 2) {
     display: none;
   }
-  .issues-box__more--narrow {
-    display: inline;
+  .genbar__hint:not(.genbar__hint--link) {
+    display: none;
   }
 }
 
 @media (max-width: 960px) {
   .head-row {
-    grid-template-columns: minmax(0, 1fr) 230px;
+    grid-template-columns: minmax(0, 1fr) 236px;
   }
   .tender-card__icon {
     display: none;
+  }
+  .tender-facts {
+    grid-template-columns: repeat(2, minmax(0, max-content));
+  }
+  .legend li {
+    white-space: normal;
+    align-items: baseline;
+  }
+  .legend li::before {
+    transform: translateY(-1px);
+  }
+  .genbar__ready {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 18px;
+  }
+  .genbar__ready .bar {
+    order: 3;
+    flex-basis: 100%;
+  }
+  .genbar__opts {
+    margin-top: 0;
   }
   .workspace {
     grid-template-columns: 250px minmax(0, 1fr);
@@ -1972,6 +2087,7 @@ select {
     padding: 14px;
   }
   .genbar {
+    position: static;
     grid-template-columns: 1fr;
   }
   .genbar__go {
