@@ -28,7 +28,7 @@ export interface Inspection {
 type PdfJs = typeof import('pdfjs-dist');
 let pdfjsPromise: Promise<PdfJs> | undefined;
 
-function loadPdfJs(): Promise<PdfJs> {
+export function loadPdfJs(): Promise<PdfJs> {
   pdfjsPromise ??= Promise.all([
     import('pdfjs-dist'),
     import('pdfjs-dist/build/pdf.worker.min.mjs?url'),

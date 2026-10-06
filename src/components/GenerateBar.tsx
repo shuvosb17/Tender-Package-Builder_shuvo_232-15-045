@@ -1,7 +1,6 @@
-import { useState } from 'react';
 import type { StatusCode } from '../lib/types';
 import { useI18n } from '../i18nContext';
-import { IconAlert, IconCalendar, IconCheck, IconDownload, IconSpinner, IconTable, IconX } from './Icons';
+import { IconAlert, IconCheck, IconDownload, IconSpinner, IconTable } from './Icons';
 
 export interface Blocker {
   reqId: string;
@@ -19,88 +18,85 @@ interface Props {
   canExport: boolean;
   onIncludeIndex: (v: boolean) => void;
   onBlockerClick: (reqId: string) => void;
+  onShowAllIssues: () => void;
   onGenerate: () => void;
   onExportCsv: () => void;
 }
 
-const BLOCKER_ICON = { missing: IconX, expiry_needed: IconCalendar, expired: IconAlert } as const;
-
-const COLLAPSED = 3;
+const VISIBLE = 3;
 
 export function GenerateBar(p: Props) {
   const { t } = useI18n();
-  const [expanded, setExpanded] = useState(false);
   const blocked = p.blockers.length > 0;
   const busy = Boolean(p.progress);
   const pct = p.total ? Math.round((p.ready / p.total) * 100) : 0;
 
   return (
-    <footer className="genbar" aria-label={t.generate}>
-      <div className="genbar__inner">
-        <div className="genbar__progress">
-          <div className="ring" style={{ ['--pct' as string]: `${pct}` }} aria-hidden="true">
-            <span>{blocked ? <IconAlert size={16} /> : <IconCheck size={18} strokeWidth={2.6} />}</span>
-          </div>
-          <div>
-            <p className="genbar__ready" aria-live="polite">
-              {t.checklistSummary(p.ready, p.total)}
-            </p>
-            <p className={`genbar__state ${blocked ? 'genbar__state--blocked' : 'genbar__state--ok'}`}>
-              {blocked ? t.blockersTitle(p.blockers.length) : t.allSet}
-            </p>
-          </div>
+    <section className="card genbar" id="generate-bar" aria-label={t.generate}>
+      <div className="genbar__ready">
+        <p className="genbar__count" aria-live="polite">
+          {t.documentsReady(p.ready, p.total)}
+        </p>
+        <div className="bar" aria-hidden="true">
+          <span style={{ width: `${pct}%` }} />
         </div>
-
-        {blocked && (
-          <ul className={`blockers ${expanded ? 'blockers--expanded' : ''}`} aria-label={t.blockersTitle(p.blockers.length)}>
-            {(expanded ? p.blockers : p.blockers.slice(0, COLLAPSED)).map((b) => {
-              const Icon = BLOCKER_ICON[b.code as keyof typeof BLOCKER_ICON] ?? IconAlert;
-              return (
-                <li key={b.reqId}>
-                  <button type="button" className={`blocker blocker--${b.code}`} onClick={() => p.onBlockerClick(b.reqId)}>
-                    <Icon size={14} strokeWidth={2.4} />
-                    <span>{b.text}</span>
-                  </button>
-                </li>
-              );
-            })}
-            {p.blockers.length > COLLAPSED && (
-              <li>
-                <button type="button" className="blocker blocker--more" aria-expanded={expanded} onClick={() => setExpanded((v) => !v)}>
-                  {expanded ? t.showLess : t.showAll(p.blockers.length)}
-                </button>
-              </li>
-            )}
-          </ul>
-        )}
-
-        <div className="genbar__actions">
+        <div className="genbar__opts">
           <label className="check">
             <input type="checkbox" checked={p.includeIndex} onChange={(e) => p.onIncludeIndex(e.target.checked)} />
             <span>{t.includeIndex}</span>
           </label>
-          <button type="button" className="btn btn--secondary" onClick={p.onExportCsv} disabled={!p.canExport}>
-            <IconTable size={16} />
+          <button type="button" className="link-btn link-btn--icon" onClick={p.onExportCsv} disabled={!p.canExport}>
+            <IconTable size={15} />
             {t.exportCsv}
-          </button>
-          {p.lastPackage && !busy && (
-            <a className="btn btn--ghost" href={p.lastPackage.url} download={p.lastPackage.name}>
-              <IconDownload size={16} />
-              {t.downloadAgain}
-            </a>
-          )}
-          <button
-            type="button"
-            className="btn btn--primary btn--lg genbar__go"
-            disabled={blocked || busy}
-            aria-disabled={blocked || busy}
-            onClick={p.onGenerate}
-          >
-            {busy ? <IconSpinner size={18} /> : <IconDownload size={18} />}
-            {busy ? t.generating(p.progress!.done, p.progress!.total) : t.generate}
           </button>
         </div>
       </div>
-    </footer>
+
+      <div className={`issues-box ${blocked ? 'issues-box--blocked' : 'issues-box--ok'}`} role="status">
+        {blocked ? (
+          <>
+            <p className="issues-box__title">
+              <IconAlert size={17} />
+              {t.issuesTitle}
+            </p>
+            <ul className="issues-box__list">
+              {p.blockers.slice(0, VISIBLE).map((b) => (
+                <li key={b.reqId}>
+                  <button type="button" className="issues-box__link" onClick={() => p.onBlockerClick(b.reqId)}>
+                    {b.text}
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              className={`link-btn issues-box__more ${p.blockers.length > VISIBLE ? '' : 'issues-box__more--narrow'}`}
+              onClick={p.onShowAllIssues}
+            >
+              {t.showAll(p.blockers.length)}
+            </button>
+          </>
+        ) : (
+          <p className="issues-box__title">
+            <IconCheck size={18} strokeWidth={2.6} />
+            {t.allSet}
+          </p>
+        )}
+      </div>
+
+      <div className="genbar__go-wrap">
+        <button type="button" className="btn btn--primary btn--lg genbar__go" disabled={blocked || busy} onClick={p.onGenerate}>
+          {busy ? <IconSpinner size={18} /> : <IconDownload size={18} />}
+          {busy ? t.generating(p.progress!.done, p.progress!.total) : t.generate}
+        </button>
+        {p.lastPackage && !busy && !blocked ? (
+          <a className="genbar__hint genbar__hint--link" href={p.lastPackage.url} download={p.lastPackage.name}>
+            {t.downloadAgain}: {p.lastPackage.name}
+          </a>
+        ) : (
+          blocked && <p className="genbar__hint">{t.generateHint}</p>
+        )}
+      </div>
+    </section>
   );
 }

@@ -22,6 +22,7 @@ export default async function (page, base) {
   log('Files', await page.eval(`__t.files()`));
   log('Suggestions', await page.eval(`[...document.querySelectorAll('.req')].map(r => r.querySelector('.req__num').textContent + ' ' + (r.querySelector('.suggestion__name')?.textContent ?? '-'))`));
   await page.shot(`${shots}/02-files-loaded.png`);
+  await page.eval(`document.querySelectorAll('.toast button').forEach((b) => b.click()); true`);
 
   // Match everything the way an office worker would.
   const pick = async (order, name) => log(`pick #${order} ${name}`, await page.eval(`__t.pick(${order}, ${JSON.stringify(name)})`));
@@ -41,7 +42,7 @@ export default async function (page, base) {
   await date(5, '2026-09-30'); // before deadline -> Expired
   await page.sleep(200);
   log('Statuses (mixed)', await page.eval(`__t.statuses()`));
-  log('Blockers', await page.eval(`[...document.querySelectorAll('.blocker')].map(b => b.textContent)`));
+  log('Blockers', await page.eval(`[...document.querySelectorAll('.issues-box__link')].map(b => b.textContent)`));
   log('Generate disabled?', await page.eval(`document.querySelector('.genbar__go').disabled`));
   await page.eval(`window.scrollTo(0, 0); true`);
   await page.shot(`${shots}/03-statuses.png`);
@@ -63,7 +64,7 @@ export default async function (page, base) {
   log('Language persisted', await page.eval(`localStorage.getItem('tpb.lang')`));
 
   // Blocker click scrolls to and highlights the row.
-  await page.eval(`document.querySelector('.blocker').click(); true`);
+  await page.eval(`document.querySelector('.issues-box__link').click(); true`);
   await page.sleep(500);
   log('Flash row after blocker click', await page.eval(`document.querySelector('.req--flash')?.id`));
 
@@ -82,11 +83,11 @@ export default async function (page, base) {
   await date(9, '2027-03-31');
   await page.sleep(200);
   log('Final statuses', await page.eval(`__t.statuses()`));
-  log('Bar', await page.eval(`document.querySelector('.genbar__state').textContent + ' | disabled=' + document.querySelector('.genbar__go').disabled`));
+  log('Bar', await page.eval(`document.querySelector('.issues-box__title').textContent + ' | disabled=' + document.querySelector('.genbar__go').disabled`));
   await page.eval(`window.scrollTo(0, 0); true`);
   await page.shot(`${shots}/06-all-set.png`);
 
-  await page.eval(`__t.clickText('Generate package'); true`);
+  await page.eval(`document.querySelector('.genbar__go').click(); true`);
   const file = `${output}/T-2026-0417_Package.pdf`;
   for (let i = 0; i < 60 && !existsSync(file); i++) await page.sleep(250);
   await page.sleep(500);

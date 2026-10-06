@@ -89,7 +89,7 @@ const page = {
   },
 };
 
-await page.viewport(1440, 900);
+await page.viewport(Number(process.env.VW ?? 1440), Number(process.env.VH ?? 900));
 try {
   const scenario = await import(pathToFileURL(resolve(scenarioPath)).href);
   await scenario.default(page, baseUrl);

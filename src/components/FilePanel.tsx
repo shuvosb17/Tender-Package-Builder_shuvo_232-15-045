@@ -1,11 +1,11 @@
-import { useRef, useState, type DragEvent } from 'react';
+import { useRef, useState } from 'react';
 import type { DuplicateGroup } from '../lib/duplicates';
 import type { Requirement, UploadedFile } from '../lib/types';
 import { MAX_FILES, MAX_TOTAL_BYTES } from '../lib/pdfInfo';
 import { digits, formatBytes } from '../i18n';
 import { useI18n } from '../i18nContext';
 import { FileCard } from './FileCard';
-import { IconSparkle, IconUpload } from './Icons';
+import { IconPlus, IconSparkle, IconUpload } from './Icons';
 
 interface Props {
   files: UploadedFile[];
@@ -13,6 +13,8 @@ interface Props {
   usedBy: Map<string, Requirement>;
   suggestionCount: number;
   showSampleFiles: boolean;
+  selectedId?: string;
+  onSelect: (id: string) => void;
   onAddFiles: (files: File[]) => void;
   onRemove: (id: string) => void;
   onAcceptAllSuggestions: () => void;
@@ -24,103 +26,110 @@ export function FilePanel(props: Props) {
   const { t, lang } = useI18n();
   const inputRef = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
+  const [sort, setSort] = useState<'upload' | 'name'>('upload');
   const totalSize = files.reduce((s, f) => s + f.size, 0);
   const full = files.length >= MAX_FILES;
-
-  // The window-level handler in App adds dropped files; this zone only gives visual feedback.
-  const onDrop = () => setOver(false);
-
-  const picker = (
-    <input
-      ref={inputRef}
-      type="file"
-      accept="application/pdf,.pdf"
-      multiple
-      hidden
-      onChange={(e) => {
-        const list = Array.from(e.target.files ?? []);
-        e.target.value = '';
-        if (list.length) onAddFiles(list);
-      }}
-    />
-  );
+  const sorted = sort === 'name' ? [...files].sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true })) : files;
 
   return (
-    <section className="panel files" aria-labelledby="files-title">
-      <div className="panel__head">
-        <h2 id="files-title">{t.yourFiles}</h2>
-        <span className="panel__count">
-          {t.filesSummary(files.length, formatBytes(totalSize, lang))}
-        </span>
-      </div>
-      <div className="meter" aria-hidden="true">
-        <span style={{ width: `${Math.min(100, (totalSize / MAX_TOTAL_BYTES) * 100)}%` }} />
+    <section className="card col col--files" id="files-panel" aria-labelledby="files-title">
+      <div className="col__head">
+        <h2 id="files-title">
+          {t.uploadedFiles}{' '}
+          <span className="col__count">{digits(`${files.length} / ${MAX_FILES}`, lang)}</span>
+        </h2>
+        <button type="button" className="btn btn--primary btn--small" disabled={full} onClick={() => inputRef.current?.click()}>
+          <IconPlus size={16} strokeWidth={2.4} />
+          {t.addShort}
+        </button>
       </div>
 
-      {picker}
-      <div
-        className={`dropzone ${over ? 'dropzone--over' : ''} ${files.length ? 'dropzone--compact' : ''}`}
-        onDragOver={(e: DragEvent) => {
-          e.preventDefault();
-          setOver(true);
+      <input
+        ref={inputRef}
+        type="file"
+        accept="application/pdf,.pdf"
+        multiple
+        hidden
+        id="file-input"
+        onChange={(e) => {
+          const list = Array.from(e.target.files ?? []);
+          e.target.value = '';
+          if (list.length) onAddFiles(list);
         }}
-        onDragLeave={() => setOver(false)}
-        onDrop={onDrop}
-      >
-        {files.length === 0 ? (
-          <>
-            <span className="dropzone__icon">
-              <IconUpload size={26} />
-            </span>
-            <p className="dropzone__title">{over ? t.dropActive : t.dropTitle}</p>
-            <p className="dropzone__body">{t.dropBody}</p>
-            <button type="button" className="btn btn--primary" onClick={() => inputRef.current?.click()}>
-              {t.chooseFiles}
-            </button>
-            {props.showSampleFiles && (
-              <button type="button" className="link-btn" onClick={props.onLoadSampleFiles}>
-                {t.loadSampleFiles}
+      />
+
+      <div className="col__scroll">
+        <div
+          className={`dropzone ${over ? 'dropzone--over' : ''} ${files.length ? 'dropzone--compact' : ''}`}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setOver(true);
+          }}
+          onDragLeave={() => setOver(false)}
+          onDrop={() => setOver(false)}
+        >
+          <span className="dropzone__icon">
+            <IconUpload size={files.length ? 18 : 24} />
+          </span>
+          <div className="dropzone__text">
+            <p className="dropzone__title">{over ? t.dropActive : files.length ? t.dropMore : t.dropTitle}</p>
+            <p className="dropzone__body">{t.filesSummary(files.length, formatBytes(totalSize, lang))}</p>
+          </div>
+          {!files.length && (
+            <>
+              <p className="dropzone__body">{t.dropBody}</p>
+              <button type="button" className="btn btn--secondary btn--small" onClick={() => inputRef.current?.click()}>
+                {t.chooseFiles}
               </button>
-            )}
-          </>
-        ) : (
-          <button
-            type="button"
-            className="dropzone__compact-btn"
-            disabled={full}
-            onClick={() => inputRef.current?.click()}
-          >
-            <IconUpload size={18} />
-            <span>{over ? t.dropActive : t.addMore}</span>
-            <span className="dropzone__limit">{digits(`${files.length}/${MAX_FILES}`, lang)}</span>
-          </button>
+              {props.showSampleFiles && (
+                <button type="button" className="link-btn" onClick={props.onLoadSampleFiles}>
+                  {t.loadSampleFiles}
+                </button>
+              )}
+            </>
+          )}
+        </div>
+        <div className="meter" aria-hidden="true">
+          <span style={{ width: `${Math.min(100, (totalSize / MAX_TOTAL_BYTES) * 100)}%` }} />
+        </div>
+
+        {suggestionCount > 0 && (
+          <div className="suggest-banner">
+            <IconSparkle size={16} />
+            <span>{t.suggestionsAvailable(suggestionCount)}</span>
+            <button type="button" className="btn btn--small btn--secondary" onClick={props.onAcceptAllSuggestions}>
+              {t.acceptAll}
+            </button>
+          </div>
+        )}
+
+        {files.length > 1 && (
+          <label className="sort">
+            <span>{t.sortBy}:</span>
+            <select value={sort} onChange={(e) => setSort(e.target.value as 'upload' | 'name')}>
+              <option value="upload">{t.sortUpload}</option>
+              <option value="name">{t.sortName}</option>
+            </select>
+          </label>
+        )}
+
+        {files.length > 0 && (
+          <ul className="file-list">
+            {sorted.map((f) => (
+              <FileCard
+                key={f.id}
+                file={f}
+                group={groups.get(f.id)}
+                others={files}
+                usedBy={usedBy.get(f.id)}
+                selected={props.selectedId === f.id}
+                onSelect={() => props.onSelect(f.id)}
+                onRemove={() => props.onRemove(f.id)}
+              />
+            ))}
+          </ul>
         )}
       </div>
-
-      {suggestionCount > 0 && (
-        <div className="suggest-banner">
-          <IconSparkle size={16} />
-          <span>{t.suggestionsAvailable(suggestionCount)}</span>
-          <button type="button" className="btn btn--small btn--secondary" onClick={props.onAcceptAllSuggestions}>
-            {t.acceptAll}
-          </button>
-        </div>
-      )}
-
-      {files.length > 0 && (
-        <ul className="file-list">
-          {files.map((f) => (
-            <FileCard
-              key={f.id}
-              file={f}
-              group={groups.get(f.id)}
-              others={files}
-              usedBy={usedBy.get(f.id)}
-              onRemove={() => props.onRemove(f.id)}
-            />
-          ))}
-        </ul>
-      )}
     </section>
   );
 }

@@ -13,10 +13,12 @@ import { toCsv } from './lib/csv';
 import { renderBanglaLabels } from './lib/banglaLabels';
 import { localToday } from './lib/dates';
 import type { FileProblem, Requirement, UploadedFile } from './lib/types';
-import { TopBar } from './components/TopBar';
+import { Sidebar } from './components/Sidebar';
+import { TenderHeader } from './components/TenderHeader';
 import { Welcome, RequirementsError } from './components/Welcome';
 import { FilePanel } from './components/FilePanel';
-import { Checklist } from './components/Checklist';
+import { Checklist, type Tab } from './components/Checklist';
+import { Preview } from './components/Preview';
 import { GenerateBar, type Blocker } from './components/GenerateBar';
 import { Toasts, type Toast, type ToastKind } from './components/Toasts';
 import { IconUpload } from './components/Icons';
@@ -224,9 +226,79 @@ export default function App() {
 
   const counted = requirements.filter((r) => statuses[r.id]?.code !== 'not_provided');
   const readyCount = counted.filter((r) => statuses[r.id]?.code === 'ok').length;
+  const counts = useMemo(() => {
+    const c = { ok: 0, attention: 0, missing: 0, optional: 0, total: 0 };
+    for (const r of requirements) {
+      const code = statuses[r.id]?.code;
+      if (code === 'ok') c.ok++;
+      else if (code === 'expired' || code === 'expiry_needed') c.attention++;
+      else if (code === 'missing') c.missing++;
+      else if (code === 'not_provided') c.optional++;
+    }
+    c.total = c.ok + c.attention + c.missing;
+    return c;
+  }, [requirements, statuses]);
+
+  // ---------- layout state ----------
+  const [tab, setTab] = useState<Tab>('checklist');
+  const [previewId, setPreviewId] = useState<string>();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [wide, setWide] = useState(() => window.matchMedia('(min-width: 1500px)').matches);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1500px)');
+    const on = () => setWide(mq.matches);
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  const previewFile = state.files.find((f) => f.id === previewId) ?? (wide ? state.files.find((f) => !f.problem && !f.inspecting) : undefined);
+
+  const openPreview = useCallback((id: string) => {
+    setPreviewId(id);
+    setDrawerOpen(true);
+  }, []);
+
+  const removeFile = useCallback((id: string) => {
+    dispatch({ type: 'removeFile', id });
+    setPreviewId((cur) => (cur === id ? undefined : cur));
+    setDrawerOpen(false);
+  }, []);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setDrawerOpen(false);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [drawerOpen]);
+
+  const stepsDone = [Boolean(state.data), state.files.length > 0, state.files.length > 0 && blockers.length === 0, Boolean(lastPackage)];
+  const stepsEnabled = [true, Boolean(state.data), Boolean(state.data), Boolean(state.data)];
+  const goToStep = useCallback(
+    (i: number) => {
+      if (i === 0) {
+        if (!stateRef.current.data) jsonInput.current?.click();
+        else document.querySelector('.tender-card')?.scrollIntoView({ behavior: 'smooth' });
+      } else if (i === 1) {
+        document.getElementById('files-panel')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        document.getElementById('file-input')?.click();
+      } else if (i === 2) {
+        setTab('checklist');
+        document.getElementById('tab-checklist')?.focus();
+      } else {
+        setTab('summary');
+        document.getElementById('generate-bar')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        document.querySelector<HTMLElement>('.genbar__go')?.focus();
+      }
+    },
+    [],
+  );
 
   // ---------- actions ----------
   const focusRequirement = useCallback((reqId: string) => {
+    setTab('checklist');
+    window.setTimeout(() => focusRow(reqId), 30);
+  }, []);
+
+  const focusRow = useCallback((reqId: string) => {
     const el = document.getElementById(`req-${reqId}`);
     if (!el) return;
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -344,11 +416,11 @@ export default function App() {
     <I18nContext.Provider value={{ lang, t }}>
       <div className={`app ${state.data ? 'app--loaded' : ''}`} lang={lang}>
         {state.data && (
-          <a className="skip-link" href="#checklist-title">
+          <a className="skip-link" href="#tab-checklist">
             {t.skipToChecklist}
           </a>
         )}
-        <TopBar tender={tender} onLangChange={setLang} onChangeTender={() => jsonInput.current?.click()} />
+        <Sidebar done={stepsDone} enabled={stepsEnabled} onStep={goToStep} onLangChange={setLang} />
         <input
           ref={jsonInput}
           type="file"
@@ -364,21 +436,20 @@ export default function App() {
         {!state.data ? (
           <Welcome issues={issues} onOpen={() => jsonInput.current?.click()} onSample={loadSample} />
         ) : (
-          <>
-            {issues && (
-              <div className="layout-alert">
-                <RequirementsError issues={issues} />
-              </div>
-            )}
-            <main className="layout" id="main">
+          <main className="main" id="main">
+            {issues && <RequirementsError issues={issues} />}
+            <TenderHeader tender={tender!} counts={counts} onChangeTender={() => jsonInput.current?.click()} />
+            <div className="workspace">
               <FilePanel
                 files={state.files}
                 groups={groups}
                 usedBy={usedBy}
                 suggestionCount={Object.keys(suggestions).length}
                 showSampleFiles={isSample}
+                selectedId={previewFile?.id}
+                onSelect={openPreview}
                 onAddFiles={(f) => void addFiles(f)}
-                onRemove={(id) => dispatch({ type: 'removeFile', id })}
+                onRemove={removeFile}
                 onAcceptAllSuggestions={acceptAllSuggestions}
                 onLoadSampleFiles={() => void loadSampleFiles()}
               />
@@ -388,11 +459,29 @@ export default function App() {
                 statuses={statuses}
                 groups={groups}
                 suggestions={suggestions}
+                blockers={blockers}
+                includeIndex={includeIndex}
                 flashId={flashId}
-                readyText={t.checklistSummary(readyCount, counted.length)}
+                tab={tab}
+                onTab={setTab}
+                onBlockerClick={focusRequirement}
+                onPreview={openPreview}
                 dispatch={dispatch}
               />
-            </main>
+              {wide ? (
+                <Preview file={previewFile} usedBy={previewFile && usedBy.get(previewFile.id)} onRemove={removeFile} />
+              ) : (
+                drawerOpen &&
+                previewFile && (
+                  <div className="drawer" role="dialog" aria-modal="true" aria-label={t.previewTitle} onKeyDown={(e) => e.key === 'Escape' && setDrawerOpen(false)}>
+                    <div className="drawer__scrim" onClick={() => setDrawerOpen(false)} />
+                    <div className="drawer__panel">
+                      <Preview file={previewFile} usedBy={usedBy.get(previewFile.id)} onRemove={removeFile} onClose={() => setDrawerOpen(false)} />
+                    </div>
+                  </div>
+                )
+              )}
+            </div>
             <GenerateBar
               ready={readyCount}
               total={counted.length}
@@ -403,10 +492,11 @@ export default function App() {
               canExport={requirements.length > 0}
               onIncludeIndex={setIncludeIndex}
               onBlockerClick={focusRequirement}
+              onShowAllIssues={() => setTab('issues')}
               onGenerate={() => void generate()}
               onExportCsv={exportCsv}
             />
-          </>
+          </main>
         )}
 
         {pageDrag && (

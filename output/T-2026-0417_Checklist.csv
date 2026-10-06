@@ -1,0 +1,11 @@
+﻿Order,Document,Required,File name,Pages,Expiry date,Status
+1,Trade License,Yes,trade_license_2026-27.pdf,1,2027-06-30,OK
+2,TIN Certificate,Yes,eTIN_Certificate.pdf,1,,OK
+3,VAT Registration Certificate,Yes,VAT_BIN_registration.pdf,1,2026-10-20,OK
+4,Power of Attorney,No,,,,Not provided
+5,Bank Solvency Certificate,Yes,bank_solvency_certificate_renewed.pdf,1,2026-12-31,OK
+6,Experience Certificate,Yes,experience_certificate_BCC.pdf,2,,OK
+8,Audited Financial Statement,No,,,,Not provided
+9,Manufacturer Authorization Letter,No,manufacturer_authorization_letter.pdf,1,2027-03-31,OK
+10,Technical Proposal,Yes,Technical_Proposal.pdf,5,,OK
+12,Financial Proposal,Yes,Financial_Proposal_BOQ.pdf,3,,OK

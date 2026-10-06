@@ -8,7 +8,7 @@ window.__t = {
     return true;
   },
   row(order) {
-    return [...document.querySelectorAll('.req')].find((r) => r.querySelector('.req__num').textContent.trim() === String(order).padStart(2, '0'));
+    return [...document.querySelectorAll('.req')].find((r) => r.querySelector('.req__num').textContent.trim() === String(order));
   },
   pick(order, fileName) {
     const sel = this.row(order).querySelector('select');
