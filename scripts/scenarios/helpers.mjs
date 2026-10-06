@@ -20,7 +20,7 @@ window.__t = {
     return 'ok';
   },
   date(order, value) {
-    const input = this.row(order).querySelector('input[type=date]');
+    const input = this.row(order).querySelector('.date-field__input');
     if (!input) throw new Error('No date input for #' + order);
     Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(input, value);
     input.dispatchEvent(new Event('input', { bubbles: true }));

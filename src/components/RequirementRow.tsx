@@ -3,6 +3,7 @@ import type { Requirement, RequirementStatus, UploadedFile } from '../lib/types'
 import { digits } from '../i18n';
 import { useI18n } from '../i18nContext';
 import { StatusChip } from './StatusChip';
+import { DateField } from './DateField';
 import { IconCheck, IconSparkle, IconX } from './Icons';
 
 export interface FileOption {
@@ -105,14 +106,13 @@ export function RequirementRow({ req, status, deadline, file, expiry, options, s
         </label>
         {req.has_expiry && file ? (
           <>
-            <input
+            <DateField
               id={`${id}-date`}
-              type="date"
               className={`input ${status.code === 'expiry_needed' ? 'input--attention' : ''} ${status.code === 'expired' ? 'input--error' : ''}`}
               value={expiry ?? ''}
-              onChange={(e) => onExpiry(e.target.value)}
-              aria-describedby={status.code === 'expired' ? reasonId : `${id}-hint`}
-              aria-invalid={status.code === 'expired'}
+              onChange={onExpiry}
+              describedBy={status.code === 'expired' ? reasonId : `${id}-hint`}
+              invalid={status.code === 'expired'}
             />
             <p id={`${id}-hint`} className={expiry ? 'visually-hidden' : 'cell-note'}>
               {t.expiryHint}
