@@ -66,7 +66,12 @@ const en = {
   procuringEntity: 'Procuring entity',
   bidder: 'Bidder',
   deadline: 'Submission deadline',
-  daysLeft: (n: number) => (n === 0 ? 'Due today' : n > 0 ? `${n} day${n === 1 ? '' : 's'} left` : `Passed ${-n} day${n === -1 ? '' : 's'} ago`),
+  daysLeft: (n: number) =>
+    n === 0
+      ? 'Last day to submit'
+      : n > 0
+        ? `${n} day${n === 1 ? '' : 's'} left to submit`
+        : `Passed ${-n} day${n === -1 ? '' : 's'} ago`,
   // Files panel
   yourFiles: 'Your files',
   filesSummary: (count: number, size: string) => `${count} of 30 files · ${size} of 50 MB`,
@@ -254,7 +259,12 @@ const bn: Dict = {
   procuringEntity: 'ক্রয়কারী প্রতিষ্ঠান',
   bidder: 'দরদাতা',
   deadline: 'জমার শেষ তারিখ',
-  daysLeft: (n) => (n === 0 ? 'আজই শেষ দিন' : n > 0 ? `আর ${digits(n, 'bn')} দিন বাকি` : `${digits(-n, 'bn')} দিন আগে শেষ হয়েছে`),
+  daysLeft: (n) =>
+    n === 0
+      ? 'আজই জমার শেষ দিন'
+      : n > 0
+        ? `জমা দিতে আর ${digits(n, 'bn')} দিন বাকি`
+        : `${digits(-n, 'bn')} দিন আগে শেষ হয়েছে`,
   yourFiles: 'আপনার ফাইল',
   filesSummary: (count, size) => `৩০টির মধ্যে ${digits(count, 'bn')}টি ফাইল · ৫০ MB-এর মধ্যে ${size}`,
   dropTitle: 'PDF ফাইল এখানে ছেড়ে দিন, সর্বোচ্চ ৩০টি',

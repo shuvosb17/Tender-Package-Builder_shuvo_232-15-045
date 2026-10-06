@@ -8,7 +8,7 @@ export default async function (page, base) {
   const output = process.env.OUTPUT ?? 'output';
   await page.downloadsTo(output);
   await page.goto(base);
-  await page.eval(`localStorage.clear(); true`);
+  await page.eval(`localStorage.clear(); localStorage.setItem('tpb.theme', 'light'); true`);
   await page.goto(base);
   await page.eval(install);
   await page.shot(`${shots}/01-welcome.png`);

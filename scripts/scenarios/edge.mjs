@@ -10,6 +10,8 @@ const drop = (name, content, type) => `(() => {
 export default async function (page, base) {
   const out = process.env.SHOTS ?? 'screenshots';
   await page.goto(base);
+  await page.eval(`localStorage.setItem('tpb.theme', 'light'); true`);
+  await page.goto(base);
   await page.eval(install);
 
   await page.eval(drop('requirements.json', `'{"tender": {"tender_id": "X", "title": "", "submission_deadline": "20/10/2026"}, "requirements": [{"id": 1}]}'`, 'application/json'));
